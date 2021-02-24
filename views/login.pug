@@ -1,0 +1,11 @@
+doctype html
+head
+  link(rel="stylesheet" href="/css/login.css")
+body
+  div.container
+    form(action="/login/callback" method="POST")
+      input#username(label="Username" name="username" type="text" placeholder="Enter Username" value=lastUsername)
+      br
+      input#room(label="Room" name="room" type="text" placeholder="Enter Room Code" value=lastRoom required)
+      br
+      input#submit(type="submit" name="submit" value="Join Room")

@@ -1,0 +1,20 @@
+doctype html
+head
+  title= "Room: " + room
+  
+  link(rel="stylesheet" href="/css/chat.css")
+body
+  h1= "Username: " + username
+  h2= "Room: " + room
+  
+  ui#messages
+    each message in messages
+      p= message
+      
+  form#form()
+    input#text(autocomplete="off" autofocus="on" placeholder="type your message here...")
+  
+  a(href="/login") Join Another Room
+  
+  script(src="/socket.io/socket.io.js")
+  script(src="/js/chat.js")
