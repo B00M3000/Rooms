@@ -33,14 +33,12 @@ io.on('connection', socket => {
   
   socket.join(channelID)
   
-  const channel = io.sockets.in(channelID)
-  
-  channel.emit(`userJoin`, {
+  io.sockets.in(channelID).emit(`userJoin`, {
     user: username
   })
   
   socket.on('send', content => {
-    channel.emit(`message`, {
+    io.sockets.in(channelID).emit(`message`, {
       type: 'user',
       author: username,
       content
@@ -49,20 +47,20 @@ io.on('connection', socket => {
   
   socket.on('getUsers', () => {
     var connections = []
-    channel.sockets.forEach(s => {
+    io.sockets.in(channelID).sockets.forEach(s => {
       const query = s.handshake.query
       const username = query.username
       connections.push({
         username
       })
     })
-    socket.emit('users', connections)
+    io.sockets.in(channelID).emit('users', connections)
   })
   
   socket.on('disconnect', () => {
     console.log(`${username} diconnected from ${room}`)
     
-    channel.emit(`userLeft`, {
+    io.sockets.in(channelID).emit(`userLeft`, {
       user: username
     })
   })
