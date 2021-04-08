@@ -24,31 +24,45 @@ app.use(express.json())
 app.use(express.urlencoded())
 app.use(cookieParser())
 
-const pages = path.join(__dirname, 'pages')
-
 io.on('connection', socket => {
   const { username, room } = socket.handshake.query
   
   console.log(`A socket connected with the username ${username} to the room ${room}`)
   
-  io.emit(`${room}:message`, {
-    type: "join",
+  const channelID = `Room ${room}`
+  
+  socket.join(channelID)
+  
+  const channel = io.sockets.in(channelID)
+  
+  channel.emit(`userJoin`, {
     user: username
   })
   
   socket.on('send', content => {
-    io.emit(`${room}:message`, {
+    channel.emit(`message`, {
       type: 'user',
       author: username,
       content
     })
   })
   
+  socket.on('getUsers', () => {
+    var connections = []
+    channel.sockets.forEach(s => {
+      const query = s.handshake.query
+      const username = query.username
+      connections.push({
+        username
+      })
+    })
+    socket.emit('users', connections)
+  })
+  
   socket.on('disconnect', () => {
     console.log(`${username} diconnected from ${room}`)
     
-    io.emit(`${room}:message`, {
-      type: "leave",
+    channel.emit(`userLeft`, {
       user: username
     })
   })
@@ -56,6 +70,10 @@ io.on('connection', socket => {
 
 app.get('/', (req, res) => {
   res.render('index')
+})
+
+app.get('/rr', (req, res) => {
+  res.render('rr')
 })
 
 app.use('/login', require('./routes/login'))
@@ -67,8 +85,22 @@ app.get('/chat', (req, res) => {
   res.render('chat', {
     username,
     room,
-    messages: []
+    messages: [],
+    users: []
   })
+});
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404)
+  res.render('errors/404')
+})
+
+// // Handle 500
+app.use((error, req, res, next) => {
+  res.status(505)
+  res.render('errors/500')
+  console.log(error)
 });
 
 server.listen(PORT, () => {

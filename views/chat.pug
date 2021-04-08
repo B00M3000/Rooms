@@ -2,18 +2,30 @@ doctype html
 head
   title= "Room: " + room
   
+  link(rel="stylesheet" href="/css/main.css")
   link(rel="stylesheet" href="/css/chat.css")
 body
   h1= "Username: " + username
   h2= "Room: " + room
   
-  ui#messages
-    each message in messages
-      p= message
-      
-  form#form()
-    input#text(autocomplete="off" autofocus="on" placeholder="type your message here...")
-  
+  div.container
+    div.left
+      div#_messages
+        ui#messages
+          each message in messages
+            li= `${message.author}: ${message.content}`
+            br
+            
+      form#form()
+        input#text(autocomplete="off" autofocus="on" placeholder="type your message here...")
+        input(type="submit" value="Send")
+        
+    div.right
+      h3 Users Connected
+      ui#users
+    
+  button#toggleSnap(onclick="toggleSnapping()") Turn off Snapping
+    
   a(href="/login") Join Another Room
   
   script(src="/socket.io/socket.io.js")
