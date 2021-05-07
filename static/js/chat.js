@@ -67,4 +67,4 @@ function toggleSnapping(){
     snapping = true;
     toggleSnap.innerHTML = "Turn off Snapping"
   }
-}
+}     
