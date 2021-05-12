@@ -1,0 +1,15 @@
+doctype html
+head
+  link(rel="stylesheet" href="/css/account_form.css")
+  link(rel="stylesheet" href="/css/main.css")
+body
+  div.container
+    h1 Login
+    If you don't have a account with us yet signup 
+    a(href="/user/signup") here
+    form(action="/user/login" method="POST")
+      input#username(label="Username" name="username" type="text" placeholder="Enter Username")
+      br
+      input#room(label="Password" name="password" type="password" placeholder="Password" value=lastRoom required)
+      br
+      input#submit(type="submit" name="submit" value="Login")

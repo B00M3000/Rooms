@@ -7,25 +7,29 @@ var toggleSnap = document.getElementById('toggleSnap')
 
 var snapping = true;
 
-var params = new URLSearchParams(window.location.search)
-
-var username = params.get('username')
-var room = params.get('room')
-
-var socket = io.connect('', {query: `username=${username}&room=${room}`})
+var socket = io.connect("", {
+  query: {
+    "SESSION_ID": SESSION_ID,
+    "ROOM": room
+  }
+})
 
 socket.on('userJoin', data => {
+  let m = document.createElement('li')
   m.append(`System: ${data.user} joined!`)
+  messages.append(m)
   socket.emit('getUsers')
 })
 
 socket.on('userLeft', data => {
-  m.append(`System: ${message.user} left!`)
+  let m = document.createElement('li')
+  m.append(`System: ${data.user} left!`)
+  messages.append(m)
   socket.emit('getUsers')
 })
 
 socket.on(`message`, message => {
-  var m = document.createElement('li')
+  let m = document.createElement('li')
   
   if(message.type == "user"){
     m.append(`${message.author}: ${message.content}`)
@@ -46,6 +50,8 @@ socket.on('users', usersArray => {
     users.append(li)
   })
 })
+
+socket.emit("")
 
 form.addEventListener('submit', e => {
   e.preventDefault()

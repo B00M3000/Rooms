@@ -1,0 +1,17 @@
+doctype html
+head
+  link(rel="stylesheet" href="/css/main.css")
+body
+  div.container
+    h1= "Welcome back " + username
+    p= "Your uuid is " + uid
+    
+    input#room(label="Join a Room!" name="room" type="text" placeholder="Enter Room Code")
+    button(onclick="joinRoom()") Join Room
+    
+    script.
+      const roomInput = document.getElementById("room")
+      
+      function joinRoom(){
+        window.location.href = `/room/${roomInput.value}`
+      }

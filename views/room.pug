@@ -29,4 +29,8 @@ body
   a(href="/login") Join Another Room
   
   script(src="/socket.io/socket.io.js")
-  script(src="/js/chat.js")
+  script.
+    let username = "#{username}"
+    let room = "#{room}"
+    let SESSION_ID = "#{SESSION_ID}"
+  script(src="/js/room.js")

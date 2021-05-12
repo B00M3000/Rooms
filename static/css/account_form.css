@@ -1,12 +1,8 @@
 body {
-  display: flex;
-  align-items: center;
+  text-align: center;
 }
 
 .container {
-  display: flex;
-  align-self: center;
-  
   border-radius: 10px;
   background: lightcyan;
   box-shadow: 10px 10px grey;

@@ -5,16 +5,14 @@ const express = require('express');
 const http = require('http')
 const socketio = require('socket.io')
 const path = require('path')
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser')
+const mongo = require('./mongo')
 
 const PORT = process.env.PORT || 3000
 
 const app = express();
 const server = http.createServer(app)
-const io = socketio(server, {
-  
-})
+const io = socketio(server)
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
@@ -24,47 +22,79 @@ app.use(express.json())
 app.use(express.urlencoded())
 app.use(cookieParser())
 
-io.on('connection', socket => {
-  const { username, room } = socket.handshake.query
+const SessionSchema = require('./schemas/Session.js')
+const UserSchema  = require('./schemas/User.js')
+
+app.use(async (req, res, next) => {
+  const { SESSION_ID } = req.cookies
+  const USER_ID =  await SessionSchema.get(SESSION_ID)
+  if(SESSION_ID && USER_ID){
+    const USER = await UserSchema.get({ _id: USER_ID })
+    res.locals = {
+      isAuthenticated: true,
+      SESSION_ID,
+      username: USER.username,
+      uid: USER._id,
+    }
+  } else {
+    res.clearCookie('SESSION_ID')
+    res.locals = {
+      isAuthenticated: false,
+    }
+  }
+  next()
+})
+
+const rooms = io.of((name, auth, next) => {
+  if(name.startsWith('/room')){
+    next(null, name.match("^[A-Za-z0-9]+$"))
+  }
+})
+
+io.on("connection", async (socket) => {
+  const { SESSION_ID, ROOM } = socket.handshake.query
   
-  console.log(`A socket connected with the username ${username} to the room ${room}`)
+  const USER_ID =  await SessionSchema.get(SESSION_ID)
+  const USER = await UserSchema.get({ _id: USER_ID })
+
+  console.log(`A socket connected with the username ${USER.username} to the room ${ROOM}`)
   
-  const channelID = `Room ${room}`
+  socket.join(`room/${ROOM}`)
   
-  socket.join(channelID)
+  const channel = io.to(`room/${ROOM}`)
   
-  io.sockets.in(channelID).emit(`userJoin`, {
-    user: username
+  channel.emit(`userJoin`, {
+    user: USER.username
   })
   
   socket.on('send', content => {
-    io.sockets.in(channelID).emit(`message`, {
+    channel.emit(`message`, {
       type: 'user',
-      author: username,
+      author: USER.username,
       content
     })
   })
   
   socket.on('getUsers', () => {
     var connections = []
-    io.sockets.in(channelID).sockets.forEach(s => {
-      const query = s.handshake.query
-      const username = query.username
+    channel.sockets.sockets.forEach(async s => {
+      const USER_ID =  await SessionSchema.get(s.handshake.query.SESSION_ID)
+      const USER = await UserSchema.get({ _id: USER_ID })
       connections.push({
-        username
+        username: USER.username
       })
+      channel.emit('users', connections)
     })
-    io.sockets.in(channelID).emit('users', connections)
   })
   
   socket.on('disconnect', () => {
-    console.log(`${username} diconnected from ${room}`)
+    console.log(`${USER.username} diconnected from ${ROOM}`)
     
-    io.sockets.in(channelID).emit(`userLeft`, {
-      user: username
+    channel.emit(`userLeft`, {
+      user: USER.username
     })
   })
-})
+});
 
 app.get('/', (req, res) => {
   res.render('index')
@@ -74,33 +104,34 @@ app.get('/rr', (req, res) => {
   res.render('rr')
 })
 
-app.use('/login', require('./routes/login'))
-
-app.get('/chat', (req, res) => {
-  const { username, room } = req.query
-  if(!username || !room) return res.redirect('/login')
-  
-  res.render('chat', {
-    username,
-    room,
-    messages: [],
-    users: []
-  })
-});
+app.use('/room', require('./routes/room'))
+app.use('/user', require('./routes/user'))
 
 // Handle 404
 app.use((req, res) => {
-  res.status(404)
-  res.render('errors/404')
+  res.status(404).render('error', {
+    error: {
+      status: 404,
+      message: "Page Not Found"
+    }
+  })
 })
 
 // // Handle 500
 app.use((error, req, res, next) => {
-  res.status(505)
-  res.render('errors/500')
+  res.status(500).render('error', {
+    error: {
+      code: 500,
+      message: "Internal Server Error"
+    }
+  }) 
   console.log(error)
 });
 
 server.listen(PORT, () => {
   console.log(`Server Started on Port ${PORT}`);
 });
+
+mongo().then(() => {
+  console.log(`MongoDB Connection Established`)
+})
