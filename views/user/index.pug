@@ -1,17 +1,41 @@
 doctype html
 head
   link(rel="stylesheet" href="/css/main.css")
+  link(rel="stylesheet" href="/css/user.index.css")
 body
   div.container
     h1= "Welcome back " + username
     p= "Your uuid is " + uid
     
-    input#room(label="Join a Room!" name="room" type="text" placeholder="Enter Room Code")
-    button(onclick="joinRoom()") Join Room
+    div#profilePictureContainer
+      p Your Current Avatar
+      if !avatarSrc
+        img#profilePicture(src="/images/default-user-icon.jpg")
+      else
+        img#profilePicture(src=avatarSrc)
+      p Upload Avatar
+      input#newAvatarFileInput(type="file" accept="image/jpg,image/jpeg,image/png")
+
+    form#dummy
+      input#room(label="Join a Room!" name="room" type="text" placeholder="Enter Room Code")
+      button(onclick="joinRoom()") Join Room
+
+    button(onclick="window.location.href='/user/logout'") Logout
+    
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
     
     script.
       const roomInput = document.getElementById("room")
-      
+      const dummyForm = document.getElementById("dummy")
+
       function joinRoom(){
         window.location.href = `/room/${roomInput.value}`
       }
+
+      dummyForm.addEventListener('submit', (e) => {
+        e.preventDefault()
+      })
+
+    script(src="/js/user.index.js")
+

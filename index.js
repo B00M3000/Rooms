@@ -24,17 +24,20 @@ app.use(cookieParser())
 
 const SessionSchema = require('./schemas/Session.js')
 const UserSchema  = require('./schemas/User.js')
+const AvatarSchema = require('./schemas/Avatar')
 
 app.use(async (req, res, next) => {
   const { SESSION_ID } = req.cookies
   const USER_ID =  await SessionSchema.get(SESSION_ID)
   if(SESSION_ID && USER_ID){
     const USER = await UserSchema.get({ _id: USER_ID })
+    let avatar = await AvatarSchema.get(USER_ID)
     res.locals = {
       isAuthenticated: true,
       SESSION_ID,
       username: USER.username,
       uid: USER._id,
+      avatarSrc: avatar ? `data:${avatar['Content-Type']};base64,${avatar.base64}` : undefined
     }
   } else {
     res.clearCookie('SESSION_ID')
@@ -45,12 +48,6 @@ app.use(async (req, res, next) => {
   next()
 })
 
-const rooms = io.of((name, auth, next) => {
-  if(name.startsWith('/room')){
-    next(null, name.match("^[A-Za-z0-9]+$"))
-  }
-})
-
 io.on("connection", async (socket) => {
   const { SESSION_ID, ROOM } = socket.handshake.query
   
@@ -59,38 +56,48 @@ io.on("connection", async (socket) => {
 
   console.log(`A socket connected with the username ${USER.username} to the room ${ROOM}`)
   
-  socket.join(`room/${ROOM}`)
+  let channel_string = `room/${ROOM}`
   
-  const channel = io.to(`room/${ROOM}`)
+  socket.join(channel_string)
   
-  channel.emit(`userJoin`, {
+  socket.on('fetchUsername', () => {
+    socket.emit('username', USER.username)
+  })
+  
+  io.to(channel_string).emit(`userJoin`, {
     user: USER.username
   })
   
   socket.on('send', content => {
-    channel.emit(`message`, {
+    io.to(channel_string).emit(`message`, {
       type: 'user',
       author: USER.username,
       content
     })
   })
   
+  socket.on('isTyping', isTyping => {
+    io.to(channel_string).emit('userTyping', { isTyping, username: USER.username })
+  })
+  
   socket.on('getUsers', () => {
     var connections = []
-    channel.sockets.sockets.forEach(async s => {
+    io.sockets.adapter.rooms.get(`room/${ROOM}`).forEach(async clientId => {
+      s = io.sockets.sockets.get(clientId);
       const USER_ID =  await SessionSchema.get(s.handshake.query.SESSION_ID)
       const USER = await UserSchema.get({ _id: USER_ID })
       connections.push({
-        username: USER.username
+        username: USER.username,
+        uid: USER_ID
       })
-      channel.emit('users', connections)
+      io.to(channel_string).emit('users', connections)
     })
   })
   
   socket.on('disconnect', () => {
     console.log(`${USER.username} diconnected from ${ROOM}`)
     
-    channel.emit(`userLeft`, {
+    io.to(channel_string).emit(`userLeft`, {
       user: USER.username
     })
   })

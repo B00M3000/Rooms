@@ -1,0 +1,97 @@
+#users {
+  list-style-type: none; 
+}
+
+#users img {
+  vertical-align: middle;
+  margin: 5px 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+}
+
+#messages {
+  list-style-type: none; 
+  align-items: bottom;
+}
+
+#_messages {
+  height: 40vh;
+  width: 80vh;
+  word-wrap: break-word;
+  overflow-y: scroll;
+  color: white;
+}
+
+#messsage li { 
+  padding: 5px 10px; 
+  background: #595959;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.right {
+  flex-grow: 1;
+  padding: 10px;
+}
+
+.left {
+  flex-grow: 3;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+a {
+  float: none;
+}
+
+#text {
+  width: 50vw;
+  height: 20px;
+  background-color: inherit;
+  border-style: none;
+  color: white;
+}
+
+#message-input {
+  background-color: #9c9c9c;
+  border-radius: 5px;
+}
+
+#message-input button {
+  vertical-align: middle;
+  border: none;
+  background-color: inherit;
+}
+
+#message-input button img {
+  height: 20px;
+  width: 20px;
+  padding: none;
+  margin: none;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: inherit;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}

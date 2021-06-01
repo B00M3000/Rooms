@@ -3,7 +3,7 @@ var router = Router()
 
 router.use((req, res, next) => {
   if(res.locals.isAuthenticated) next()
-  else res.redirect('/user')
+  else res.redirect(`/user/login?redirect=${req.originalUrl}`)
 })
 
 router.get('/', (req, res) => res.redirect('/user'))

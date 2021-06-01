@@ -10,3 +10,22 @@ body {
   width: 300px;
   height: 250px;
 }
+
+label {
+  display: block;
+  transform: translate(0, -2.75rem);
+}
+
+@supports (not (-ms-ime-align:auto)) {
+    label {
+      color: #999;
+      transform: translate(0.25rem, -1.5rem);
+      transition: all 0.2s ease-out;
+    }
+
+    input:focus + label,
+    input:not(:placeholder-shown) + label {
+      color: #111;
+      transform: translate(0, -2.75rem);
+    }
+}
